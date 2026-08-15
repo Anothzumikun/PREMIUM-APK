@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 import { settingsSchema } from "@/lib/validations";
 import { z } from "zod";
+import FileUpload from "@/components/admin/FileUpload";
 
 const formSchema = settingsSchema.pick({ site_name: true, site_description: true });
 type FormValues = z.infer<typeof formSchema>;
@@ -16,6 +17,7 @@ export default function AdminSettingsPage() {
   const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
 
   const {
     register,
@@ -32,11 +34,26 @@ export default function AdminSettingsPage() {
           site_name: data.site_name,
           site_description: data.site_description,
         });
+        setBannerUrl(data.banner_url || null);
       }
       setLoading(false);
     }
     load();
   }, []);
+
+  async function saveBanner(url: string | null) {
+    setBannerUrl(url);
+    const { error } = await supabase
+      .from("settings")
+      .update({ banner_url: url })
+      .eq("id", 1);
+
+    if (error) {
+      toast.error(`Gagal menyimpan banner: ${error.message}`);
+      return;
+    }
+    toast.success(url ? "Banner diperbarui" : "Banner dihapus, kembali ke judul teks");
+  }
 
   async function onSubmit(values: FormValues) {
     setSaving(true);
@@ -66,6 +83,22 @@ export default function AdminSettingsPage() {
       <p className="mb-6 font-body text-sm text-ink-500">
         Nama dan deskripsi ini dipakai untuk judul tab browser dan SEO
       </p>
+
+      <div className="card-surface mb-5 flex flex-col gap-2 rounded-xl2 p-6">
+        <FileUpload
+          label="Banner Beranda"
+          accept="image/*"
+          preview="image"
+          value={bannerUrl}
+          onChange={saveBanner}
+          folder="banner"
+        />
+        <p className="font-body text-xs text-ink-500">
+          Kalau diisi, banner ini menggantikan judul teks di halaman utama.
+          Rekomendasi ukuran lebar, misal 1600×500px. Hapus gambar untuk kembali
+          ke tampilan judul teks.
+        </p>
+      </div>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
