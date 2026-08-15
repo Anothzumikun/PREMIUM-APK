@@ -25,6 +25,7 @@ export interface SiteSettings {
   whatsapp_link: string;
   music_url: string | null;
   music_enabled: boolean;
+  banner_url: string | null;
   social_links: Record<string, string>;
   updated_at: string;
 }
