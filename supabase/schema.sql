@@ -39,6 +39,7 @@ create table if not exists public.settings (
   whatsapp_link text not null default '',
   music_url text,
   music_enabled boolean not null default false,
+  banner_url text,
   social_links jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now(),
   constraint settings_singleton check (id = 1)
@@ -46,6 +47,9 @@ create table if not exists public.settings (
 
 insert into public.settings (id) values (1)
 on conflict (id) do nothing;
+
+-- Migrasi aman untuk project yang sudah pernah menjalankan schema ini sebelumnya
+alter table public.settings add column if not exists banner_url text;
 
 -- ---------------------------------------------------------
 -- Trigger: auto-update updated_at
